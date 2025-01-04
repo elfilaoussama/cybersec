@@ -1,0 +1,144 @@
+{
+    "centerTopic": "Virologie Informatique",
+    "branches": [
+        {
+        "title": "Types de Malwares",
+        "id": "types",
+        "subBranches": [
+            {
+            "title": "Virus",
+            "modalTitle": "Virus Informatiques",
+            "modalContent": {
+                "markdown": "# Virus Informatiques\n\n## Définition\nUn virus informatique est un programme malveillant qui s'attache à d'autres programmes ou fichiers pour se répliquer et se propager.\n*Structure typique d'un virus informatique*\n\n## Types Principaux\n- **Virus de Boot:** Infecte le secteur de démarrage\n- **Virus de Fichiers:** Infecte les fichiers exécutables\n- **Virus Multipartites:** Combine plusieurs méthodes d'infection\n\n## Techniques Avancées\n*Techniques de camouflage virales*\n\n- **Polymorphisme:** Change de signature pour éviter la détection\n- **Métamorphisme:** Modifie son code complet à chaque infection\n- **Furtivité:** Se cache du système et des antivirus\n\n## Cycle d'Infection\n![Cycle d'infection](img.jpg)\n*Cycle typique d'infection d'un virus*"
+            },
+            "details": [
+                "Se réplique via programmes hôtes",
+                "Types: boot, fichiers, multipartites",
+                "Polymorphes, métamorphes, furtifs"
+            ]
+            },
+            {
+            "title": "Vers",
+            "modalTitle": "Vers Informatiques",
+            "modalContent": {
+                "markdown": "# Vers Informatiques\n\n## Définition\nUn ver est un programme malveillant qui se propage de manière autonome à travers les réseaux.\n\n## Caractéristiques\n- **Auto-propagation:** Pas besoin de fichier hôte\n- **Exploitation réseau:** Utilise les vulnérabilités réseau\n- **Impact:** Consommation de bande passante\n\n## Vecteurs de Propagation\n- **Email:** Pièces jointes malveillantes\n- **Vulnérabilités:** Exploitation de failles réseau\n- **P2P:** Fichiers partagés infectés"
+            },
+            "details": [
+                "Auto-propagation via réseau",
+                "Réseau, email, P2P"
+            ]
+            },
+            {
+            "title": "Chevaux de Troie",
+            "modalTitle": "Chevaux de Troie",
+            "modalContent": {
+                "markdown": "# Chevaux de Troie\n\n## Définition\nLogiciel malveillant qui se présente comme légitime mais cache des fonctionnalités malveillantes.\n\n## Types Courants\n- **Backdoors:** Crée des accès non autorisés\n- **Spywares:** Collecte des informations\n- **Adwares:** Affiche des publicités non désirées\n\n## Méthodes d'Infection\n- **Applications piratées**\n- **Téléchargements falsifiés**\n- **Pièces jointes email**"
+            },
+            "details": [
+                "Dissimulé dans programme légitime",
+                "Backdoors, Spywares, Adwares"
+            ]
+            },
+            {
+            "title": "Botnets",
+            "modalTitle": "Réseaux de Botnets",
+            "modalContent": {
+                "markdown": "# Réseaux de Botnets\n\n## Définition\nRéseau d'ordinateurs infectés contrôlés à distance par un attaquant.\n\n## Utilisations\n- **DDoS:** Attaques par déni de service\n- **Spam:** Envoi massif d'emails\n- **Mining:** Cryptomining non autorisé\n\n## Architecture\n- **C&C:** Serveurs de commande et contrôle\n- **Zombies:** Machines infectées\n- **Communication:** IRC, P2P, HTTP"
+            },
+            "details": [
+                "Réseau de machines zombies",
+                "Contrôle centralisé, DDoS"
+            ]
+            }
+        ]
+        },
+      {
+        "title": "Mécanismes",
+        "id": "mechanisms",
+        "subBranches": [
+          {
+            "title": "Réplication",
+            "details": [
+              "Boot, injection, cavité",
+              "Compagnon, parasitage"
+            ]
+          },
+          {
+            "title": "Propagation",
+            "details": [
+              "Email, failles réseau",
+              "P2P, messagerie instantanée"
+            ]
+          },
+          {
+            "title": "Camouflage",
+            "details": [
+              "Chiffrement, mutation",
+              "Techniques anti-détection"
+            ]
+          },
+          {
+            "title": "Payload",
+            "details": [
+              "Actions malveillantes",
+              "Destruction, vol, espionnage"
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Protection",
+        "id": "protection",
+        "subBranches": [
+          {
+            "title": "Antivirus",
+            "details": [
+              "Signature, heuristique",
+              "Analyse comportementale"
+            ]
+          },
+          {
+            "title": "Pare-feu",
+            "details": [
+              "Filtrage trafic",
+              "Contrôle accès réseau"
+            ]
+          },
+          {
+            "title": "Anti-spam",
+            "details": [
+              "Filtrage messages",
+              "Listes noires"
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Analyse Malwares",
+        "id": "analysis",
+        "subBranches": [
+          {
+            "title": "Statique",
+            "details": [
+              "Désassemblage code",
+              "Analyse structure"
+            ]
+          },
+          {
+            "title": "Dynamique",
+            "details": [
+              "Environnement contrôlé",
+              "Analyse comportement"
+            ]
+          },
+          {
+            "title": "Objectifs",
+            "details": [
+              "Comprendre mécanismes",
+              "Identifier vecteurs infection"
+            ]
+          }
+        ]
+      }
+    ]
+  }
