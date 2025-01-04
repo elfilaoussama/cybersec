@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mind Map Virologie Informatique</title>
+  <!-Bootstrap CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #3b82f6;
+      --accent-color: #60a5fa;
+      --background-color: #f8fafc;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --transition-speed: 0.3s;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--background-color);
+      margin: 0;
+      padding: 20px;
+      color: var(--text-primary);
+    }
+    
+    .mindmap-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5rem;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .center-topic {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 20px;
+      border-radius: 50%;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 20px auto;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      box-shadow: var(--card-shadow);
+      transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+    }
+    
+    .center-topic:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+    }
+    
+    .branches-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+      width: 100%;
+    }
+    
+    .branch {
+      flex: 1 1 300px;
+      max-width: 400px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      transition: all var(--transition-speed);
+      cursor: pointer;
+    }
+    
+    .branch:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.15);
+    }
+    
+    .branch-title {
+      background: var(--primary-color);
+      color: white;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      text-align: center;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      transition: background-color var(--transition-speed);
+    }
+    
+    .branch:hover .branch-title {
+      background: var(--secondary-color);
+    }
+    
+    .sub-branch {
+      margin: 15px 0;
+      padding: 15px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      transition: all var(--transition-speed);
+      border-left: 3px solid var(--accent-color);
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    
+    .sub-branch:hover {
+      background: #e2e8f0;
+      transform: translateX(5px);
+    }
+    
+    .details {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-left: 15px;
+      margin-top: 8px;
+      font-weight: 300;
+      transition: color var(--transition-speed);
+      position: relative;
+    }
+    
+    .details:before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      width: 5px;
+      height: 1px;
+      background: var(--text-secondary);
+      transition: width var(--transition-speed);
+    }
+    
+    .sub-branch:hover .details:before {
+      width: 8px;
+    }
+    
+    .collapse {
+      transition: all var(--transition-speed) ease-in-out;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .branch {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    .branch:nth-child(1) { animation-delay: 0.1s; }
+    .branch:nth-child(2) { animation-delay: 0.2s; }
+    .branch:nth-child(3) { animation-delay: 0.3s; }
+    .branch:nth-child(4) { animation-delay: 0.4s; }
+    
+    @media (max-width: 768px) {
+      .branch {
+        flex: 1 1 100%;
+      }
+      
+      .center-topic {
+        width: 180px;
+        height: 180px;
+        font-size: 1.2rem;
+      }
+      
+      .branch-title {
+        font-size: 1rem;
+      }
+      
+      .sub-branch {
+        padding: 12px;
+        font-size: 0.95rem;
+      }
+      
+      .details {
+        font-size: 0.85rem;
+      }
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    .modal-content {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      background: var(--primary-color);
+      color: white;
+      border-radius: 12px 12px 0 0;
+      padding: 1rem 1.5rem;
+    }
+
+    .modal-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .loading-spinner {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .error-message {
+      display: none;
+      color: #dc3545;
+      padding: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<dy>
+  <div class="container-fluid">
+    <div class="mindmap-container">
+      <div class="center-topic">Virologie Informatique</div>
+      
+      <div class="branches-container">
+        <div class="branch" data-bs-toggle="collapse" data-bs-target="#types">
+          <div class="branch-title">Types de Malwares</div>
+          <div id="types" class="collapse show">
+            <div class="sub-branch" data-content-url="virus-details.html" data-title="Virus Informatiques">
+              Virus
+              <div class="details">Se réplique via programmes hôtes</div>
+              <div class="details">Types: boot, fichiers, multipartites</div>
+              <div class="details">Polymorphes, métamorphes, furtifs</div>
+            </div>
+            <div class="sub-branch">
+              Vers
+              <div class="details">Auto-propagation via réseau</div>
+              <div class="details">Réseau, email, P2P</div>
+            </div>
+            <div class="sub-branch">
+              Chevaux de Troie
+              <div class="details">Dissimulé dans programme légitime</div>
+              <div class="details">Backdoors, Spywares, Adwares</div>
+            </div>
+            <div class="sub-branch">
+              Botnets
+              <div class="details">Réseau de machines zombies</div>
+              <div class="details">Contrôle centralisé, DDoS</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch" data-bs-toggle="collapse" data-bs-target="#mechanisms">
+          <div class="branch-title">Mécanismes</div>
+          <div id="mechanisms" class="collapse show">
+            <div class="sub-branch">
+              Réplication
+              <div class="details">Boot, injection, cavité</div>
+              <div class="details">Compagnon, parasitage</div>
+            </div>
+            <div class="sub-branch">
+              Propagation
+              <div class="details">Email, failles réseau</div>
+              <div class="details">P2P, messagerie instantanée</div>
+            </div>
+            <div class="sub-branch">
+              Camouflage
+              <div class="details">Chiffrement, mutation</div>
+              <div class="details">Techniques anti-détection</div>
+            </div>
+            <div class="sub-branch">
+              Payload
+              <div class="details">Actions malveillantes</div>
+              <div class="details">Destruction, vol, espionnage</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch" data-bs-toggle="collapse" data-bs-target="#protection">
+          <div class="branch-title">Protection</div>
+          <div id="protection" class="collapse show">
+            <div class="sub-branch">
+              Antivirus
+              <div class="details">Signature, heuristique</div>
+              <div class="details">Analyse comportementale</div>
+            </div>
+            <div class="sub-branch">
+              Pare-feu
+              <div class="details">Filtrage trafic</div>
+              <div class="details">Contrôle accès réseau</div>
+            </div>
+            <div class="sub-branch">
+              Anti-spam
+              <div class="details">Filtrage messages</div>
+              <div class="details">Listes noires</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="branch" data-bs-toggle="collapse" data-bs-target="#analysis">
+          <div class="branch-title">Analyse Malwares</div>
+          <div id="analysis" class="collapse show">
+            <div class="sub-branch">
+              Statique
+              <div class="details">Désassemblage code</div>
+              <div class="details">Analyse structure</div>
+            </div>
+            <div class="sub-branch">
+              Dynamique
+              <div class="details">Environnement contrôlé</div>
+              <div class="details">Analyse comportement</div>
+            </div>
+            <div class="sub-branch">
+              Objectifs
+              <div class="details">Comprendre mécanismes</div>
+              <div class="details">Identifier vecteurs infection</div>
+            </div>
+          </div>
+          
+        </div>
+         <!-- Modal Structure -->
+         <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Loading...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="loading-spinner">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+                <div class="error-message">
+                  Failed to load content. Please try again.
+                </div>
+                <div id="modalContent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+   <!-- Bootstrap JS and required dependencies -->
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  
+   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> <!-- Add marked.js -->
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modal
+    const contentModal = new bootstrap.Modal(document.getElementById('contentModal'));
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    const loadingSpinner = document.querySelector('.loading-spinner');
+    const errorMessage = document.querySelector('.error-message');
+
+    // Load and render JSON data
+    async function loadMindMap() {
+      try {
+        const response = await fetch('source.json');
+        const data = await response.json();
+
+        // Set center topic
+        document.getElementById('centerTopic').textContent = data.centerTopic;
+
+        // Render branches
+        const branchesContainer = document.getElementById('branchesContainer');
+        branchesContainer.innerHTML = data.branches.map(branch => `
+          <div class="branch" data-bs-toggle="collapse" data-bs-target="#${branch.id}">
+            <div class="branch-title">${branch.title}</div>
+            <div id="${branch.id}" class="collapse show">
+              ${branch.subBranches.map(subBranch => `
+                <div class="sub-branch" 
+                     ${subBranch.modalContent ? `data-modal-content="${JSON.stringify(subBranch.modalContent)}"` : ''}
+                     ${subBranch.modalTitle ? `data-title="${subBranch.modalTitle}"` : ''}>
+                  ${subBranch.title}
+                  ${subBranch.details.map(detail => `
+                    <div class="details">${detail}</div>
+                  `).join('')}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        // Add click handlers for sub-branches
+        document.querySelectorAll('.sub-branch').forEach(branch => {
+          branch.addEventListener('click', async function() {
+            const title = this.dataset.title;
+            const modalContentData = JSON.parse(this.dataset.modalContent || '{}');
+
+            if (!modalContentData.markdown) return; // Skip if no markdown content
+
+            // Update modal title
+            modalTitle.textContent = title;
+
+            // Show loading spinner and hide content/error message
+            modalContent.style.display = 'none';
+            errorMessage.style.display = 'none';
+            loadingSpinner.style.display = 'flex';
+            contentModal.show();
+
+            try {
+              // Parse markdown to HTML
+              const htmlContent = marked.parse(modalContentData.markdown);
+              
+              // Add Bootstrap classes to elements
+              const styledContent = htmlContent
+                .replace(/<ul>/g, '<ul class="list-unstyled">')
+                .replace(/<h1>/g, '<h1 class="mb-4">')
+                .replace(/<h2>/g, '<h2 class="mt-4 mb-3">')
+                .replace(/<p>/g, '<p class="lead">')
+                .replace(/<img/g, '<img class="img-fluid"'); // Optional: Make images responsive
+
+              loadingSpinner.style.display = 'none';
+              modalContent.innerHTML = styledContent;
+              modalContent.style.display = 'block';
+
+            } catch (error) {
+              console.error('Error rendering content:', error);
+              loadingSpinner.style.display = 'none';
+              errorMessage.style.display = 'block';
+            }
+          });
+        });
+
+      } catch (error) {
+        console.error('Error loading mind map data:', error);
+        document.getElementById('branchesContainer').innerHTML =
+          '<div class="error-message">Failed to load mind map data. Please try again.</div>';
+      }
+    }
+
+    // Load the mind map
+    loadMindMap();
+  });
+</script>
