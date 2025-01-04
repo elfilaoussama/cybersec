@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mind Map Virologie Informatique</title>
+  <!-Bootstrap CSS -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <!-Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #3b82f6;
+      --accent-color: #60a5fa;
+      --background-color: #f8fafc;
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --transition-speed: 0.3s;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--background-color);
+      margin: 0;
+      padding: 20px;
+      color: var(--text-primary);
+    }
+    
+    .mindmap-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5rem;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .center-topic {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 20px;
+      border-radius: 50%;
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 20px auto;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      box-shadow: var(--card-shadow);
+      transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+    }
+    
+    .center-topic:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.15);
+    }
+    
+    .branches-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+      width: 100%;
+    }
+    
+    .branch {
+      flex: 1 1 300px;
+      max-width: 400px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      transition: all var(--transition-speed);
+      cursor: pointer;
+    }
+    
+    .branch:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 12px -1px rgba(0, 0, 0, 0.15);
+    }
+    
+    .branch-title {
+      background: var(--primary-color);
+      color: white;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      text-align: center;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      transition: background-color var(--transition-speed);
+    }
+    
+    .branch:hover .branch-title {
+      background: var(--secondary-color);
+    }
+    
+    .sub-branch {
+      margin: 15px 0;
+      padding: 15px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      transition: all var(--transition-speed);
+      border-left: 3px solid var(--accent-color);
+      font-weight: 500;
+      font-size: 1rem;
+    }
+    
+    .sub-branch:hover {
+      background: #e2e8f0;
+      transform: translateX(5px);
+    }
+    
+    .details {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-left: 15px;
+      margin-top: 8px;
+      font-weight: 300;
+      transition: color var(--transition-speed);
+      position: relative;
+    }
+    
+    .details:before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      width: 5px;
+      height: 1px;
+      background: var(--text-secondary);
+      transition: width var(--transition-speed);
+    }
+    
+    .sub-branch:hover .details:before {
+      width: 8px;
+    }
+    
+    .collapse {
+      transition: all var(--transition-speed) ease-in-out;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .branch {
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    
+    .branch:nth-child(1) { animation-delay: 0.1s; }
+    .branch:nth-child(2) { animation-delay: 0.2s; }
+    .branch:nth-child(3) { animation-delay: 0.3s; }
+    .branch:nth-child(4) { animation-delay: 0.4s; }
+    
+    @media (max-width: 768px) {
+      .branch {
+        flex: 1 1 100%;
+      }
+      
+      .center-topic {
+        width: 180px;
+        height: 180px;
+        font-size: 1.2rem;
+      }
+      
+      .branch-title {
+        font-size: 1rem;
+      }
+      
+      .sub-branch {
+        padding: 12px;
+        font-size: 0.95rem;
+      }
+      
+      .details {
+        font-size: 0.85rem;
+      }
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    .modal-content {
+      border-radius: 12px;
+      border: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      background: var(--primary-color);
+      color: white;
+      border-radius: 12px 12px 0 0;
+      padding: 1rem 1.5rem;
+    }
+
+    .modal-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .loading-spinner {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .error-message {
+      display: none;
+      color: #dc3545;
+      padding: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container-fluid">
+    <div class="mindmap-container">
+      <a href="./chapitre3.html"></a>
+      <div id="centerTopic" class="center-topic"></div>
+      <div id="branchesContainer" class="branches-container">
+        <!-- Branches will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Structure -->
+  <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">Loading...</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="loadingSpinner" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div id="errorMessage" class="error-message">
+            Failed to load content. Please try again.
+          </div>
+          <div id="modalContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    function decodeMarkdown(text) {
+        // Replace '\\n' escape sequences with actual newlines
+        let decodedText = text.replace(/\\n/g, '\n');
+        
+        return decodedText;
+    }
+  </script>
+  <!-- Firebase Scripts -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyGmu8v4Pgu9O6doloSuHdP_omHuDkJG0",
+      authDomain: "courses-summary.firebaseapp.com",
+      projectId: "courses-summary",
+      storageBucket: "courses-summary.firebasestorage.app",
+      messagingSenderId: "467937369630",
+      appId: "1:467937369630:web:788a74fc5bb09b7c10980f",
+      measurementId: "G-XRXYVFD78P"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
+
+    // Helper function to get URL parameters
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      const results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // Helper function to escape quotes and backslashes
+    function escapeQuotesAndBackslashes(str) {
+      if (typeof str !== "string") {
+        throw new TypeError("Input must be a string");
+      }
+      return str.replace(/["\\]/g, (match) => {
+        switch (match) {
+          case "'": return '\\"';
+          case '\\': return '\\\\';
+          default: return match;
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize modal
+      const modalEl = document.getElementById('contentModal');
+      const modal = new bootstrap.Modal(modalEl);
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('modalContent');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+      const errorMessage = document.getElementById('errorMessage');
+
+      // Load and render data from Firebase
+      async function loadMindMap() {
+        try {
+          // Get the topic ID from URL
+          const topicId = getUrlParameter('id');
+          if (!topicId) {
+            throw new Error('No topic ID provided in URL');
+          }
+
+          // Get the specific document from Firestore
+          const docRef = doc(db, 'mindmaps', topicId);
+          const docSnap = await getDoc(docRef);
+
+          if (!docSnap.exists()) {
+            throw new Error('No mindmap found with the specified ID');
+          }
+
+          const data = docSnap.data();
+
+          // Process the data
+          data.branches.forEach(branch => {
+            branch.subBranches.forEach(subBranch => {
+              if (subBranch.modalContent && subBranch.modalContent.markdown !== undefined) {
+                subBranch.modalContent.markdown = subBranch.modalContent.markdown.replace(/'/g, '&apos;');
+              }
+            });
+          });
+
+          // Update page title
+          document.title = `Mind Map - ${data.centerTopic}`;
+
+          // Set center topic
+          document.getElementById('centerTopic').textContent = data.centerTopic;
+
+          // Render branches
+          const branchesContainer = document.getElementById('branchesContainer');
+          branchesContainer.innerHTML = data.branches.map(branch => `
+            <div class="branch">
+              <div class="branch-title">${branch.title}</div>
+              <div id="${branch.id}">
+                ${branch.subBranches.map(subBranch => `
+                  <div class="sub-branch" 
+                       onclick="handleSubBranchClick(this)"
+                       data-modal-content='${JSON.stringify(subBranch.modalContent)}'
+                       data-modal-title="${subBranch.modalTitle}">
+                    ${subBranch.title}
+                    ${subBranch.details ? subBranch.details.map(detail => `
+                      <div class="details">${detail}</div>
+                    `).join('') : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('');
+
+        } catch (error) {
+          console.error('Error loading mind map data:', error);
+          const errorMessage = error.message || 'Failed to load mind map data. Please try again.';
+          document.getElementById('branchesContainer').innerHTML = 
+            `<div class="error-message">${errorMessage}</div>`;
+        }
+      }
+
+      // Define the click handler in the global scope
+      window.handleSubBranchClick = function(element) {
+        try {
+          const modalContentData = JSON.parse(element.dataset.modalContent);
+          const title = element.dataset.modalTitle;
+
+          if (!modalContentData.markdown) {
+            console.log('No markdown content found');
+            return;
+          }
+
+          // Reset modal state
+          modalContent.style.display = 'none';
+          errorMessage.style.display = 'none';
+          loadingSpinner.style.display = 'flex';
+          modalTitle.textContent = title;
+
+          // Parse markdown to HTML
+          const decodedMarkdown  = decodeMarkdown(modalContentData.markdown)
+          const htmlContent = marked.parse(decodedMarkdown);
+          console.log(htmlContent)
+          // Add Bootstrap classes
+          const styledContent = htmlContent
+            .replace(/<ul>/g, '<ul class="list-unstyled">')
+            .replace(/<h1>/g, '<h1 class="mb-4">')
+            .replace(/<h2>/g, '<h2 class="mt-4 mb-3">')
+            .replace(/<p>/g, '<p class="lead">')
+            .replace(/<img/g, '<img class="img-fluid"');
+
+          loadingSpinner.style.display = 'none';
+          modalContent.innerHTML = styledContent;
+          modalContent.style.display = 'block';
+          
+          modal.show();
+        } catch (error) {
+          console.error('Error handling sub-branch click:', error);
+          loadingSpinner.style.display = 'none';
+          errorMessage.style.display = 'block';
+        }
+      };
+
+      // Initialize mind map
+      loadMindMap();
+
+      // Add other event listeners and functionality
+      modalEl.addEventListener('hidden.bs.modal', function () {
+        modalContent.innerHTML = '';
+        modalTitle.textContent = '';
+        errorMessage.classList.add('d-none');
+        loadingSpinner.classList.add('d-none');
+        modalContent.style.display = 'block';
+      });
+
+      // Add animation observer
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+
+      const branchObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+
+      // Initialize animations
+      document.querySelectorAll('.branch').forEach(branch => {
+        branch.style.opacity = '0';
+        branch.style.transform = 'translateY(20px)';
+        branch.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        branchObserver.observe(branch);
+      });
+    });
+  </script>
+</body>
+</html>
