@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindmap Content Creator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .branch-container {
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .sub-branch {
+            margin-left: 20px;
+            padding: 10px;
+            border-left: 2px solid #007bff;
+        }
+        .details-input {
+            margin-top: 5px;
+        }
+        #jsonOutput {
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Mindmap Content Creator</h1>
+        
+        <form id="mindmapForm">
+            <div class="mb-3">
+                <label class="form-label">Center Topic:</label>
+                <input type="text" class="form-control" id="centerTopic" required>
+            </div>
+
+            <div id="branchesContainer">
+                <!-- Branches will be added here -->
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="addBranch()">Add Branch</button>
+            <button type="submit" class="btn btn-success mt-3">Save to Firebase</button>
+        </form>
+
+        <div class="mt-4">
+            <h3>Generated JSON:</h3>
+            <pre id="jsonOutput" class="bg-light p-3 border"></pre>
+            <button class="btn btn-secondary mt-2" onclick="copyToClipboard()">Copy JSON</button>
+            <button class="btn btn-primary mt-2" onclick="downloadJSON()">Download JSON</button>
+        </div>
+
+        <div class="mt-4">
+            <h3>Saved Mindmaps:</h3>
+            <div id="savedMindmaps" class="list-group">
+                <!-- Saved mindmaps will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs,
+            query,
+            orderBy 
+        } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyGmu8v4Pgu9O6doloSuHdP_omHuDkJG0",
+            authDomain: "courses-summary.firebaseapp.com",
+            projectId: "courses-summary",
+            storageBucket: "courses-summary.firebasestorage.app",
+            messagingSenderId: "467937369630",
+            appId: "1:467937369630:web:788a74fc5bb09b7c10980f",
+            measurementId: "G-XRXYVFD78P"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+
+        // Function to load saved mindmaps
+        async function loadSavedMindmaps() {
+            try {
+                const mindmapsQuery = query(collection(db, "mindmaps"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(mindmapsQuery);
+                const mindmapsContainer = document.getElementById('savedMindmaps');
+                mindmapsContainer.innerHTML = '';
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const mindmapElement = document.createElement('div');
+                    mindmapElement.className = 'list-group-item';
+                    mindmapElement.innerHTML = `
+                        <h5 class="mb-1">${data.centerTopic}</h5>
+                        <small class="text-muted">Created: ${new Date(data.createdAt).toLocaleString()}</small>
+                        <p class="mb-1">Branches: ${data.branches.length}</p>
+                    `;
+                    mindmapsContainer.appendChild(mindmapElement);
+                });
+            } catch (error) {
+                console.error("Error loading mindmaps: ", error);
+                alert("Error loading saved mindmaps: " + error.message);
+            }
+        }
+
+        // Function to save mindmap
+        async function saveMindmap(data) {
+            try {
+                const docRef = await addDoc(collection(db, "mindmaps"), data);
+                alert(`Mindmap saved successfully with ID: ${docRef.id}`);
+                loadSavedMindmaps();
+            } catch (error) {
+                console.error("Error saving to Firebase: ", error);
+                alert("Error saving mindmap: " + error.message);
+            }
+        }
+
+        // Make functions available globally
+        window.loadSavedMindmaps = loadSavedMindmaps;
+        window.saveMindmap = saveMindmap;
+
+        // Load saved mindmaps on page load
+        loadSavedMindmaps();
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let branchCount = 0;
+        let subBranchCount = 0;
+
+        function addBranch() {
+            const branchContainer = document.createElement('div');
+            branchContainer.className = 'branch-container';
+            branchContainer.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Branch Title:</label>
+                    <input type="text" class="form-control branch-title" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Branch ID:</label>
+                    <input type="text" class="form-control branch-id" required>
+                </div>
+                <div class="sub-branches-container">
+                    <!-- Sub-branches will be added here -->
+                </div>
+                <button type="button" class="btn btn-info" onclick="addSubBranch(this)">Add Sub-Branch</button>
+                <button type="button" class="btn btn-danger" onclick="removeBranch(this)">Remove Branch</button>
+            `;
+            document.getElementById('branchesContainer').appendChild(branchContainer);
+        }
+
+        function addSubBranch(button) {
+            const subBranchContainer = document.createElement('div');
+            subBranchContainer.className = 'sub-branch';
+            subBranchContainer.innerHTML = `
+                <div class="mb-3">
+                    <label class="form-label">Sub-Branch Title:</label>
+                    <input type="text" class="form-control sub-branch-title" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Modal Title:</label>
+                    <input type="text" class="form-control modal-title" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Modal Content (Markdown):</label>
+                    <textarea class="form-control modal-content" rows="3" required></textarea>
+                </div>
+                <div class="details-container">
+                    <label class="form-label">Details:</label>
+                    <div class="details-list"></div>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="addDetail(this)">Add Detail</button>
+                </div>
+                <button type="button" class="btn btn-warning mt-2" onclick="removeSubBranch(this)">Remove Sub-Branch</button>
+            `;
+            button.parentElement.querySelector('.sub-branches-container').appendChild(subBranchContainer);
+        }
+
+        function addDetail(button) {
+            const detailInput = document.createElement('div');
+            detailInput.className = 'details-input input-group mb-2';
+            detailInput.innerHTML = `
+                <input type="text" class="form-control detail-item" required>
+                <button type="button" class="btn btn-outline-danger" onclick="removeDetail(this)">Remove</button>
+            `;
+            button.parentElement.querySelector('.details-list').appendChild(detailInput);
+        }
+
+        function removeBranch(button) {
+            button.parentElement.remove();
+        }
+
+        function removeSubBranch(button) {
+            button.parentElement.remove();
+        }
+
+        function removeDetail(button) {
+            button.parentElement.remove();
+        }
+
+        async function loadSavedMindmaps() {
+            try {
+                const mindmapsQuery = query(collection(window.db, "mindmaps"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(mindmapsQuery);
+                const mindmapsContainer = document.getElementById('savedMindmaps');
+                mindmapsContainer.innerHTML = '';
+
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const mindmapElement = document.createElement('div');
+                    mindmapElement.className = 'list-group-item';
+                    mindmapElement.innerHTML = `
+                        <h5 class="mb-1">${data.centerTopic}</h5>
+                        <small class="text-muted">Created: ${new Date(data.createdAt).toLocaleString()}</small>
+                        <p class="mb-1">Branches: ${data.branches.length}</p>
+                    `;
+                    mindmapsContainer.appendChild(mindmapElement);
+                });
+            } catch (error) {
+                console.error("Error loading mindmaps: ", error);
+                alert("Error loading saved mindmaps: " + error.message);
+            }
+        }
+
+        document.getElementById('mindmapForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const data = {
+                centerTopic: document.getElementById('centerTopic').value,
+                branches: [],
+                createdAt: new Date().toISOString()
+            };
+
+            document.querySelectorAll('.branch-container').forEach(branchElem => {
+                const branch = {
+                    title: branchElem.querySelector('.branch-title').value,
+                    id: branchElem.querySelector('.branch-id').value,
+                    subBranches: []
+                };
+
+                branchElem.querySelectorAll('.sub-branch').forEach(subBranchElem => {
+                    const subBranch = {
+                        title: subBranchElem.querySelector('.sub-branch-title').value,
+                        modalTitle: subBranchElem.querySelector('.modal-title').value,
+                        modalContent: {
+                            markdown: subBranchElem.querySelector('.modal-content').value
+                        },
+                        details: Array.from(subBranchElem.querySelectorAll('.detail-item'))
+                            .map(detail => detail.value)
+                    };
+                    branch.subBranches.push(subBranch);
+                });
+
+                data.branches.push(branch);
+            });
+
+            document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+
+            // Save to Firebase using the global function
+            await window.saveMindmap(data);
+        });
+
+        function copyToClipboard() {
+            const jsonText = document.getElementById('jsonOutput').textContent;
+            navigator.clipboard.writeText(jsonText)
+                .then(() => alert('JSON copied to clipboard!'))
+                .catch(err => console.error('Failed to copy:', err));
+        }
+
+        function downloadJSON() {
+            const jsonText = document.getElementById('jsonOutput').textContent;
+            const blob = new Blob([jsonText], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mindmap-content.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

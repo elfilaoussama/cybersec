@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Mindmap</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .mindmap-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: #f8f9fa;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .center-circle {
+            position: absolute;
+            width: clamp(80px, 15vw, 120px);
+            height: clamp(80px, 15vw, 120px);
+            background: #FF6B6B;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            font-size: clamp(14px, 2vw, 18px);
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .petal {
+            position: absolute;
+            width: clamp(100px, 20vw, 160px);
+            height: clamp(100px, 20vw, 160px);
+            background: #4ECDC4;
+            border-radius: 50% 50% 0 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transform-origin: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+
+        .petal:hover {
+            background: #45B7AF;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: scale(1.1);
+            z-index: 5;
+        }
+
+        .petal-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transform: rotate(-45deg);
+        }
+
+        .petal-text {
+            font-weight: bold;
+            text-align: center;
+            word-wrap: break-word;
+            max-width: 80%;
+            font-size: clamp(12px, 1.8vw, 14px);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="mindmap-container">
+        <div class="center-circle">
+            <span>Main Module</span>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCyGmu8v4Pgu9O6doloSuHdP_omHuDkJG0",
+            authDomain: "courses-summary.firebaseapp.com",
+            projectId: "courses-summary",
+            storageBucket: "courses-summary.appspot.com",
+            messagingSenderId: "467937369630",
+            appId: "1:467937369630:web:788a74fc5bb09b7c10980f",
+            measurementId: "G-XRXYVFD78P"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const topics = [];
+
+        async function fetchTopics() {
+            const querySnapshot = await getDocs(collection(db, "mindmaps"));
+            querySnapshot.forEach(doc => {
+                console.log()
+                topics.push({ id: doc.id, title: doc._document.data.value.mapValue.fields.centerTopic.stringValue });
+            });
+            updateMindmap();
+        }
+
+        function calculateDimensions() {
+            const centerCircle = document.querySelector('.center-circle');
+            const centerCircleRect = centerCircle.getBoundingClientRect();
+            const centerCircleRadius = centerCircleRect.width / 2;
+
+            return {
+                centerX: centerCircleRect.left + centerCircleRadius,
+                centerY: centerCircleRect.top + centerCircleRadius,
+                centerCircleRadius: centerCircleRadius,
+                petalSize: centerCircleRect.width * 1.3
+            };
+        }
+
+        function updateMindmap() {
+            const container = document.querySelector('.mindmap-container');
+            document.querySelectorAll('.petal').forEach(petal => petal.remove());
+
+            const { centerX, centerY, centerCircleRadius, petalSize } = calculateDimensions();
+            const radius = centerCircleRadius * 2; // Distance of petals from the center
+            const angleStep = (2 * Math.PI) / topics.length;
+
+            topics.forEach((topic, index) => {
+                const angle = index * angleStep;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                const petal = document.createElement('a'); // Anchor for linking
+                petal.className = 'petal';
+                petal.href = `index.html?id=${topic.id}`; // Add link to the page with the topic ID
+                petal.style.width = `${petalSize}px`;
+                petal.style.height = `${petalSize}px`;
+
+                petal.style.left = `${x - petalSize / 2}px`;
+                petal.style.top = `${y - petalSize / 2}px`;
+
+                const rotation = (angle * 180) / Math.PI + 90;
+                petal.style.transform = `rotate(${rotation}deg)`;
+
+                const content = document.createElement('div');
+                content.className = 'petal-content';
+
+                const text = document.createElement('div');
+                text.className = 'petal-text';
+                text.textContent = topic.title;
+
+                content.appendChild(text);
+                petal.appendChild(content);
+                container.appendChild(petal);
+            });
+        }
+
+        // Fetch topics and initialize mindmap
+        fetchTopics();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            updateMindmap();
+        });
+    </script>
+</body>
+</html>

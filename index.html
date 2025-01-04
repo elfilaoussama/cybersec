@@ -236,228 +236,245 @@
     }
   </style>
 </head>
-  <body>
-    <div class="container-fluid">
-      <div class="mindmap-container">
-        <a href="./chapitre3.html">Click here</a>
-        <div id="centerTopic" class="center-topic"></div>
-        <div id="branchesContainer" class="branches-container">
-          <!-- Branches will be dynamically inserted here -->
+<body>
+  <div class="container-fluid">
+    <div class="mindmap-container">
+      <a href="./chapitre3.html"></a>
+      <div id="centerTopic" class="center-topic"></div>
+      <div id="branchesContainer" class="branches-container">
+        <!-- Branches will be dynamically inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Structure -->
+  <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">Loading...</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="loadingSpinner" class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div id="errorMessage" class="error-message">
+            Failed to load content. Please try again.
+          </div>
+          <div id="modalContent"></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Modal Structure -->
-    <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalTitle">Loading...</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div id="loadingSpinner" class="loading-spinner">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-            </div>
-            <div id="errorMessage" class="error-message">
-              Failed to load content. Please try again.
-            </div>
-            <div id="modalContent"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    function decodeMarkdown(text) {
+        // Replace '\\n' escape sequences with actual newlines
+        let decodedText = text.replace(/\\n/g, '\n');
+        
+        return decodedText;
+    }
+  </script>
+  <!-- Firebase Scripts -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCyGmu8v4Pgu9O6doloSuHdP_omHuDkJG0",
+      authDomain: "courses-summary.firebaseapp.com",
+      projectId: "courses-summary",
+      storageBucket: "courses-summary.firebasestorage.app",
+      messagingSenderId: "467937369630",
+      appId: "1:467937369630:web:788a74fc5bb09b7c10980f",
+      measurementId: "G-XRXYVFD78P"
+    };
 
-    <script>
-      function escapeQuotesAndBackslashes(str) {
-        if (typeof str !== "string") {
-          throw new TypeError("Input must be a string");
-        }
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const analytics = getAnalytics(app);
 
-        return str.replace(/["\\]/g, (match) => {
-          switch (match) {
-            case "'": return '\\"'; // Escape double quotes
-            case '\\': return '\\\\'; // Escape backslashes
-            default: return match;
-          }
-        });
+    // Helper function to get URL parameters
+    function getUrlParameter(name) {
+      name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+      const regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+      const results = regex.exec(location.search);
+      return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    // Helper function to escape quotes and backslashes
+    function escapeQuotesAndBackslashes(str) {
+      if (typeof str !== "string") {
+        throw new TypeError("Input must be a string");
       }
-    </script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        // Initialize modal
-        const modalEl = document.getElementById('contentModal');
-        const modal = new bootstrap.Modal(modalEl);
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const errorMessage = document.getElementById('errorMessage');
-
-        // Load and render JSON data
-        async function loadMindMap() {
-          try {
-            
-            const response = await fetch('source.json');
-            const buffer = await response.arrayBuffer(); // Fetch raw data
-            const decoder = new TextDecoder('utf-8'); // Decode as UTF-8
-            const text = decoder.decode(buffer);
-            const data = JSON.parse(text); // Parse decoded text as JSON
-            
-            console.log(data);
-
-            data.branches.forEach(branch => {
-              console.log(branch);
-              branch.subBranches.forEach(subBranch => {
-                // Check if modalContent exists and if markdown exists within modalContent
-                if (subBranch['modalContent'] && subBranch['modalContent'].markdown !== undefined) {
-                  subBranch['modalContent'].markdown = subBranch['modalContent'].markdown.replace(/'/g, '&apos;');
-                }
-              });
-            });
-
-            console.log("Here")
-            console.log(data);
-
-            // Set center topic
-            document.getElementById('centerTopic').textContent = data.centerTopic;
-
-            // Render branches
-            const branchesContainer = document.getElementById('branchesContainer');
-            branchesContainer.innerHTML = data.branches.map(branch => `
-              <div class="branch">
-                <div class="branch-title">${branch.title}</div>
-                <div id="${branch.id}">
-                  ${branch.subBranches.map(subBranch => `
-                    <div class="sub-branch" 
-                          onclick="handleSubBranchClick(this)"
-                          data-modal-content='${JSON.stringify(subBranch["modalContent"])}'
-
-                          data-modal-title="${subBranch.modalTitle}">
-                      ${subBranch.title}
-                      ${subBranch.details ? subBranch.details.map(detail => `
-                        <div class="details">${detail}</div>
-                      `).join('') : ''}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            `).join('');
-
-          } catch (error) {
-            console.error('Error loading mind map data:', error);
-            branchesContainer.innerHTML = '<div class="error-message">Failed to load mind map data. Please try again.</div>';
-          }
+      return str.replace(/["\\]/g, (match) => {
+        switch (match) {
+          case "'": return '\\"';
+          case '\\': return '\\\\';
+          default: return match;
         }
-
-        // Define the click handler in the global scope
-        window.handleSubBranchClick = function(element) {
-          try {
-            console.log(element.dataset.modalContent)
-            const modalContentData = JSON.parse(element.dataset.modalContent);
-            console.log(modalContentData)
-            const title = element.dataset.modalTitle;
-
-            console.log('Modal data:', { title, modalContentData }); // Debug log
-
-            if (!modalContentData.markdown) {
-              console.log('No markdown content found'); // Debug log
-              return;
-            }
-
-            // Reset modal state
-            modalContent.style.display = 'none';
-            errorMessage.style.display = 'none';
-            loadingSpinner.style.display = 'flex';
-            modalTitle.textContent = title;
-
-            // Parse markdown to HTML
-            const htmlContent = marked.parse(modalContentData.markdown);
-            
-            // Add Bootstrap classes
-            const styledContent = htmlContent
-              .replace(/<ul>/g, '<ul class="list-unstyled">')
-              .replace(/<h1>/g, '<h1 class="mb-4">')
-              .replace(/<h2>/g, '<h2 class="mt-4 mb-3">')
-              .replace(/<p>/g, '<p class="lead">')
-              .replace(/<img/g, '<img class="img-fluid"');
-
-            loadingSpinner.style.display = 'none';
-            modalContent.innerHTML = styledContent;
-            modalContent.style.display = 'block';
-            
-            // Show modal
-            modal.show();
-          } catch (error) {
-            console.error('Error handling sub-branch click:', error);
-            loadingSpinner.style.display = 'none';
-            errorMessage.style.display = 'block';
-          }
-        };
-
-        modalEl.addEventListener('hidden.bs.modal', function () {
-          modalContent.innerHTML = '';
-          modalTitle.textContent = '';
-          errorMessage.classList.add('d-none');
-          loadingSpinner.classList.add('d-none');
-          modalContent.style.display = 'block';
-        });
-
-        // Initialize mind map on page load
-        loadMindMap();
-
-        // Add event listener for escape key to close modal
-        document.addEventListener('keydown', function(event) {
-          if (event.key === 'Escape' && modal._isShown) {
-            modal.hide();
-          }
-        });
-
-        // Add responsive behavior for branches
-        window.addEventListener('resize', function() {
-          const branches = document.querySelectorAll('.branch');
-          const container = document.querySelector('.branches-container');
-          const containerWidth = container.offsetWidth;
-          
-          branches.forEach(branch => {
-            if (containerWidth < 768) {
-              branch.style.maxWidth = '100%';
-            } else {
-              branch.style.maxWidth = '400px';
-            }
-          });
-        });
-
-        // Add animation on scroll for branches
-        const observerOptions = {
-          root: null,
-          rootMargin: '0px',
-          threshold: 0.1
-        };
-
-        const branchObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.style.opacity = '1';
-              entry.target.style.transform = 'translateY(0)';
-            }
-          });
-        }, observerOptions);
-
-        // Add initial styles for animation
-        document.querySelectorAll('.branch').forEach(branch => {
-          branch.style.opacity = '0';
-          branch.style.transform = 'translateY(20px)';
-          branch.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
-          branchObserver.observe(branch);
-        });
-
       });
-    </script>
-  </body>
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize modal
+      const modalEl = document.getElementById('contentModal');
+      const modal = new bootstrap.Modal(modalEl);
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('modalContent');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+      const errorMessage = document.getElementById('errorMessage');
+
+      // Load and render data from Firebase
+      async function loadMindMap() {
+        try {
+          // Get the topic ID from URL
+          const topicId = getUrlParameter('id');
+          if (!topicId) {
+            throw new Error('No topic ID provided in URL');
+          }
+
+          // Get the specific document from Firestore
+          const docRef = doc(db, 'mindmaps', topicId);
+          const docSnap = await getDoc(docRef);
+
+          if (!docSnap.exists()) {
+            throw new Error('No mindmap found with the specified ID');
+          }
+
+          const data = docSnap.data();
+
+          // Process the data
+          data.branches.forEach(branch => {
+            branch.subBranches.forEach(subBranch => {
+              if (subBranch.modalContent && subBranch.modalContent.markdown !== undefined) {
+                subBranch.modalContent.markdown = subBranch.modalContent.markdown.replace(/'/g, '&apos;');
+              }
+            });
+          });
+
+          // Update page title
+          document.title = `Mind Map - ${data.centerTopic}`;
+
+          // Set center topic
+          document.getElementById('centerTopic').textContent = data.centerTopic;
+
+          // Render branches
+          const branchesContainer = document.getElementById('branchesContainer');
+          branchesContainer.innerHTML = data.branches.map(branch => `
+            <div class="branch">
+              <div class="branch-title">${branch.title}</div>
+              <div id="${branch.id}">
+                ${branch.subBranches.map(subBranch => `
+                  <div class="sub-branch" 
+                       onclick="handleSubBranchClick(this)"
+                       data-modal-content='${JSON.stringify(subBranch.modalContent)}'
+                       data-modal-title="${subBranch.modalTitle}">
+                    ${subBranch.title}
+                    ${subBranch.details ? subBranch.details.map(detail => `
+                      <div class="details">${detail}</div>
+                    `).join('') : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `).join('');
+
+        } catch (error) {
+          console.error('Error loading mind map data:', error);
+          const errorMessage = error.message || 'Failed to load mind map data. Please try again.';
+          document.getElementById('branchesContainer').innerHTML = 
+            `<div class="error-message">${errorMessage}</div>`;
+        }
+      }
+
+      // Define the click handler in the global scope
+      window.handleSubBranchClick = function(element) {
+        try {
+          const modalContentData = JSON.parse(element.dataset.modalContent);
+          const title = element.dataset.modalTitle;
+
+          if (!modalContentData.markdown) {
+            console.log('No markdown content found');
+            return;
+          }
+
+          // Reset modal state
+          modalContent.style.display = 'none';
+          errorMessage.style.display = 'none';
+          loadingSpinner.style.display = 'flex';
+          modalTitle.textContent = title;
+
+          // Parse markdown to HTML
+          const decodedMarkdown  = decodeMarkdown(modalContentData.markdown)
+          const htmlContent = marked.parse(decodedMarkdown);
+          console.log(htmlContent)
+          // Add Bootstrap classes
+          const styledContent = htmlContent
+            .replace(/<ul>/g, '<ul class="list-unstyled">')
+            .replace(/<h1>/g, '<h1 class="mb-4">')
+            .replace(/<h2>/g, '<h2 class="mt-4 mb-3">')
+            .replace(/<p>/g, '<p class="lead">')
+            .replace(/<img/g, '<img class="img-fluid"');
+
+          loadingSpinner.style.display = 'none';
+          modalContent.innerHTML = styledContent;
+          modalContent.style.display = 'block';
+          
+          modal.show();
+        } catch (error) {
+          console.error('Error handling sub-branch click:', error);
+          loadingSpinner.style.display = 'none';
+          errorMessage.style.display = 'block';
+        }
+      };
+
+      // Initialize mind map
+      loadMindMap();
+
+      // Add other event listeners and functionality
+      modalEl.addEventListener('hidden.bs.modal', function () {
+        modalContent.innerHTML = '';
+        modalTitle.textContent = '';
+        errorMessage.classList.add('d-none');
+        loadingSpinner.classList.add('d-none');
+        modalContent.style.display = 'block';
+      });
+
+      // Add animation observer
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+      };
+
+      const branchObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+
+      // Initialize animations
+      document.querySelectorAll('.branch').forEach(branch => {
+        branch.style.opacity = '0';
+        branch.style.transform = 'translateY(20px)';
+        branch.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+        branchObserver.observe(branch);
+      });
+    });
+  </script>
+</body>
 </html>
