@@ -312,13 +312,23 @@
   <!-- Scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script type="text/javascript" async
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  </script>
   <script>
     function decodeMarkdown(text) {
         // Replace '\\n' escape sequences with actual newlines
         let decodedText = text.replace(/\\n/g, '\n');
         
+        // Replace LaTeX math expressions with HTML-safe LaTeX content for MathJax rendering
+        decodedText = decodedText.replace(/\$\$(.*?)\$\$/g, (match, p1) => {
+            // Ensure that MathJax can recognize the LaTeX math
+            return `<span class="latex-math">$$${p1}$$</span>`;
+        });
+
         return decodedText;
     }
+
   </script>
   <!-- Firebase Scripts -->
   <script type="module">
@@ -515,5 +525,17 @@
       });
     });
   </script>
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        // Function to render LaTeX expressions in the targeted class
+        function renderMath() {
+            // Trigger MathJax to process elements with the class 'latex-math'
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, document.querySelectorAll('.latex-math')]);
+        }
+
+        // Call renderMath to process the page content
+        renderMath();
+    });
+</script>
 </body>
 </html>

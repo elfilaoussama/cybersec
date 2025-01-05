@@ -10,7 +10,33 @@
             --primary-color: #2563eb;
             --border-color: #e5e7eb;
             --hover-bg: #f8fafc;
+            
         }
+
+        .file-import-container {
+            border: 2px dashed var(--border-color);
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .file-import-container:hover {
+            border-color: var(--primary-color);
+            background: var(--hover-bg);
+        }
+
+        .file-import-container.dragover {
+            border-color: var(--primary-color);
+            background: var(--hover-bg);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
 
         body {
             background-color: #f9fafb;
@@ -268,7 +294,14 @@
                 <div class="col-lg-8">
                     <div class="card p-4">
                         <h1 class="h3 mb-4">Mindmap Content Creator</h1>
-                        
+                        <div class="file-import-container mb-4" id="dropZone">
+                            <input type="file" id="fileInput" accept=".json">
+                            <div class="text-center">
+                                <i class="fas fa-file-upload fs-2 mb-2"></i>
+                                <p>Drag & drop a JSON file here or click to select</p>
+                                <small class="text-muted">Only .json files are accepted</small>
+                            </div>
+                        </div>
                         <form id="mindmapForm">
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Center Topic</label>
@@ -390,7 +423,7 @@
                 alert("Error loading saved mindmaps: " + error.message);
             }
         }
-
+        
         // Function to save mindmap to Firebase
         async function saveMindmap(data) {
             try {
@@ -500,7 +533,7 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Branch ID</label>
                         <input type="text" class="form-control branch-id" 
-                               placeholder="Enter unique identifier" required>
+                               placeholder="Enter unique identifier" >
                     </div>
                 </div>
                 <div class="sub-branches-container mb-3">
@@ -516,6 +549,7 @@
                 </div>
             `;
             document.getElementById('branchesContainer').appendChild(branchContainer);
+            return branchContainer;
         }
 
         // Add sub-branch function
@@ -532,13 +566,13 @@
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Modal Title</label>
                         <input type="text" class="form-control modal-title" 
-                               placeholder="Enter modal title" required>
+                               placeholder="Enter modal title">
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Modal Content (Markdown)</label>
                     <textarea class="form-control modal-content" rows="4" 
-                              placeholder="Enter content in markdown format" required></textarea>
+                              placeholder="Enter content in markdown format"></textarea>
                 </div>
                 <div class="details-container">
                     <label class="form-label">Details</label>
@@ -740,6 +774,207 @@
         window.addEventListener('load', function() {
             addBranch();
             loadSavedMindmaps();
+        });
+    </script>
+    <script>
+        function importMindmapData(data) {
+            // Validate data structure
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid data format: Data must be an object');
+            }
+            if (!data.centerTopic || typeof data.centerTopic !== 'string') {
+                throw new Error('Invalid data format: centerTopic is required and must be a string');
+            }
+            if (!Array.isArray(data.branches)) {
+                throw new Error('Invalid data format: branches must be an array');
+            }
+
+            try {
+                // Clear existing content
+                const branchesContainer = document.getElementById('branchesContainer');
+                if (!branchesContainer) {
+                    throw new Error('Branches container not found');
+                }
+                branchesContainer.innerHTML = '';
+                
+                // Set center topic
+                const centerTopicInput = document.getElementById('centerTopic');
+                if (!centerTopicInput) {
+                    throw new Error('Center topic input not found');
+                }
+                centerTopicInput.value = data.centerTopic;
+
+                // Import branches
+                data.branches.forEach((branch, branchIndex) => {
+                    // Validate branch data
+                    if (!branch.title || typeof branch.title !== 'string') {
+                        throw new Error(`Invalid branch at index ${branchIndex}: title is required and must be a string`);
+                    }
+                    if (!Array.isArray(branch.subBranches)) {
+                        throw new Error(`Invalid branch at index ${branchIndex}: subBranches must be an array`);
+                    }
+
+                    // Create branch container
+                    const branchContainer = addBranch();
+                    if (!branchContainer) {
+                        throw new Error(`Failed to create branch container at index ${branchIndex}`);
+                    }
+
+                    // Set branch title and ID
+                    const branchTitleInput = branchContainer.querySelector('.branch-title');
+                    const branchIdInput = branchContainer.querySelector('.branch-id');
+                    
+                    if (!branchTitleInput || !branchIdInput) {
+                        throw new Error(`Branch inputs not found at index ${branchIndex}`);
+                    }
+
+                    branchTitleInput.value = branch.title;
+                    branchIdInput.value = branch.id || '';
+
+                    // Import sub-branches
+                    branch.subBranches.forEach((subBranch, subBranchIndex) => {
+                        // Validate sub-branch data
+                        if (!subBranch.title || typeof subBranch.title !== 'string') {
+                            throw new Error(`Invalid sub-branch at branch ${branchIndex}, index ${subBranchIndex}: title is required and must be a string`);
+                        }
+
+                        const addSubBranchBtn = branchContainer.querySelector('button[onclick="addSubBranch(this)"]');
+                        if (!addSubBranchBtn) {
+                            throw new Error(`Add sub-branch button not found at branch ${branchIndex}`);
+                        }
+
+                        addSubBranch(addSubBranchBtn);
+                        
+                        const subBranchElem = branchContainer.querySelector('.sub-branch:last-child');
+                        if (!subBranchElem) {
+                            throw new Error(`Sub-branch element not found at branch ${branchIndex}, sub-branch ${subBranchIndex}`);
+                        }
+
+                        // Set sub-branch fields
+                        const subBranchInputs = {
+                            title: subBranchElem.querySelector('.sub-branch-title'),
+                            modalTitle: subBranchElem.querySelector('.modal-title'),
+                            modalContent: subBranchElem.querySelector('.modal-content')
+                        };
+
+                        // Validate all inputs exist
+                        Object.entries(subBranchInputs).forEach(([key, input]) => {
+                            if (!input) {
+                                throw new Error(`${key} input not found at branch ${branchIndex}, sub-branch ${subBranchIndex}`);
+                            }
+                        });
+
+                        subBranchInputs.title.value = subBranch.title;
+                        subBranchInputs.modalTitle.value = subBranch.modalTitle || '';
+                        subBranchInputs.modalContent.value = subBranch.modalContent?.markdown || '';
+
+                        // Import details
+                        if (Array.isArray(subBranch.details)) {
+                            const detailsContainer = subBranchElem.querySelector('.details-list');
+                            if (!detailsContainer) {
+                                throw new Error(`Details container not found at branch ${branchIndex}, sub-branch ${subBranchIndex}`);
+                            }
+
+                            subBranch.details.forEach((detail, detailIndex) => {
+                                if (typeof detail !== 'string') {
+                                    throw new Error(`Invalid detail at branch ${branchIndex}, sub-branch ${subBranchIndex}, detail ${detailIndex}: must be a string`);
+                                }
+
+                                // Create detail input directly
+                                const detailInput = document.createElement('div');
+                                detailInput.className = 'details-input input-group';
+                                detailInput.innerHTML = `
+                                    <input type="text" class="form-control detail-item" 
+                                        placeholder="Enter detail item" value="${detail}">
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="removeDetail(this)">Remove</button>
+                                `;
+                                
+                                detailsContainer.appendChild(detailInput);
+                            });
+                        }
+                    });
+                });
+
+                // Update JSON output
+                updateJsonOutput();
+                
+                return true;
+            } catch (error) {
+                console.error('Error importing mindmap:', error);
+                throw new Error(`Failed to import mindmap: ${error.message}`);
+            }
+        }
+
+        // Helper function to safely set input value
+        function setInputValue(input, value) {
+            if (input && typeof value !== 'undefined') {
+                input.value = value;
+            }
+        }
+        function handleFileSelect(event) {
+            event.preventDefault();
+            const file = event.target.files?.[0] || event.dataTransfer?.files[0];
+            
+            if (!file) {
+                alert('No file selected');
+                return;
+            }
+            
+            if (!file.name.endsWith('.json')) {
+                alert('Please select a JSON file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    await importMindmapData(jsonData);
+                    
+                    // Show success message without saving
+                    alert('Mindmap imported successfully! You can review the data and save it using the "Save Mindmap" button.');
+                    
+                } catch (error) {
+                    console.error('Error importing mindmap:', error);
+                    alert('Error importing mindmap: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Function to show a confirmation dialog before saving
+        function confirmAndSave(data) {
+            const confirmSave = confirm('Are you sure you want to save this mindmap?');
+            if (confirmSave) {
+                saveMindmap(data).then(() => {
+                    alert('Mindmap saved successfully!');
+                }).catch(error => {
+                    console.error('Error saving mindmap:', error);
+                    alert('Error saving mindmap: ' + error.message);
+                });
+            }
+        }
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFileSelect(e);
         });
     </script>
 </body>
