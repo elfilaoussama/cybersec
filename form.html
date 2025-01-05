@@ -6,56 +6,250 @@
     <title>Mindmap Content Creator</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #2563eb;
+            --border-color: #e5e7eb;
+            --hover-bg: #f8fafc;
+        }
+
+        body {
+            background-color: #f9fafb;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
         .branch-container {
-            border: 1px solid #dee2e6;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            background: white;
+            transition: all 0.2s ease;
         }
+
+        .branch-container:hover {
+            border-color: var(--primary-color);
+            background: var(--hover-bg);
+        }
+
         .sub-branch {
-            margin-left: 20px;
-            padding: 10px;
-            border-left: 2px solid #007bff;
+            margin-left: 2rem;
+            padding: 1rem;
+            border-left: 3px solid var(--primary-color);
+            background: #f8fafc;
+            border-radius: 0 8px 8px 0;
+            margin-top: 1rem;
         }
+
+        .form-control {
+            border-radius: 6px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+
         .details-input {
-            margin-top: 5px;
+            margin-top: 0.75rem;
         }
+
+        .details-container {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+
         #jsonOutput {
-            white-space: pre-wrap;
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: monospace;
             max-height: 400px;
             overflow-y: auto;
+        }
+
+        .saved-mindmap-item {
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            background: white;
+            transition: all 0.2s ease;
+        }
+
+        .saved-mindmap-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .floating-save {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        .btn-delete {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+
+        .saved-mindmap-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .mindmap-content {
+            flex: 1;
+        }
+
+        .delete-confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+        }
+
+        .delete-confirmation-modal .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1 class="mb-4">Mindmap Content Creator</h1>
-        
-        <form id="mindmapForm">
-            <div class="mb-3">
-                <label class="form-label">Center Topic:</label>
-                <input type="text" class="form-control" id="centerTopic" required>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card p-4">
+                    <h1 class="h3 mb-4">Mindmap Content Creator</h1>
+                    
+                    <form id="mindmapForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Center Topic</label>
+                            <input type="text" class="form-control form-control-lg" id="centerTopic" 
+                                   placeholder="Enter the main topic" required>
+                        </div>
+
+                        <div id="branchesContainer">
+                            <!-- Branches will be added here -->
+                        </div>
+
+                        <div class="action-buttons">
+                            <button type="button" class="btn btn-primary" onclick="addBranch()">
+                                Add New Branch
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div id="branchesContainer">
-                <!-- Branches will be added here -->
+            <div class="col-lg-4">
+                <div class="card p-4">
+                    <h3 class="h5 mb-3">Generated JSON</h3>
+                    <pre id="jsonOutput" class="mb-3"></pre>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="copyToClipboard()">Copy JSON</button>
+                        <button class="btn btn-primary" onclick="downloadJSON()">Download JSON</button>
+                    </div>
+                </div>
+
+                <div class="card p-4 mt-4">
+                    <h3 class="h5 mb-3">Saved Mindmaps</h3>
+                    <div id="savedMindmaps">
+                        <!-- Saved mindmaps will be listed here -->
+                    </div>
+                </div>
             </div>
-
-            <button type="button" class="btn btn-primary" onclick="addBranch()">Add Branch</button>
-            <button type="submit" class="btn btn-success mt-3">Save to Firebase</button>
-        </form>
-
-        <div class="mt-4">
-            <h3>Generated JSON:</h3>
-            <pre id="jsonOutput" class="bg-light p-3 border"></pre>
-            <button class="btn btn-secondary mt-2" onclick="copyToClipboard()">Copy JSON</button>
-            <button class="btn btn-primary mt-2" onclick="downloadJSON()">Download JSON</button>
         </div>
+    </div>
 
-        <div class="mt-4">
-            <h3>Saved Mindmaps:</h3>
-            <div id="savedMindmaps" class="list-group">
-                <!-- Saved mindmaps will be listed here -->
+    <div class="floating-save">
+        <button type="submit" form="mindmapForm" class="btn btn-primary btn-lg">
+            Save Mindmap
+        </button>
+    </div>
+
+    <div id="deleteConfirmationModal" class="delete-confirmation-modal">
+        <div class="modal-content">
+            <h4 class="mb-3">Delete Mindmap</h4>
+            <p>Are you sure you want to delete this mindmap? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
             </div>
         </div>
     </div>
@@ -70,7 +264,9 @@
             addDoc, 
             getDocs,
             query,
-            orderBy 
+            orderBy,
+            deleteDoc,
+            doc 
         } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
         // Firebase configuration
@@ -89,7 +285,10 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
 
-        // Function to load saved mindmaps
+        // Store the document ID to be deleted
+        let mindmapToDelete = null;
+
+        // Updated loadSavedMindmaps function
         async function loadSavedMindmaps() {
             try {
                 const mindmapsQuery = query(collection(db, "mindmaps"), orderBy("createdAt", "desc"));
@@ -100,11 +299,16 @@
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
                     const mindmapElement = document.createElement('div');
-                    mindmapElement.className = 'list-group-item';
+                    mindmapElement.className = 'saved-mindmap-item';
                     mindmapElement.innerHTML = `
-                        <h5 class="mb-1">${data.centerTopic}</h5>
-                        <small class="text-muted">Created: ${new Date(data.createdAt).toLocaleString()}</small>
-                        <p class="mb-1">Branches: ${data.branches.length}</p>
+                        <div class="mindmap-content">
+                            <h5 class="mb-1">${data.centerTopic}</h5>
+                            <div class="text-muted small">Created: ${new Date(data.createdAt).toLocaleString()}</div>
+                            <div class="mt-2">Branches: ${data.branches.length}</div>
+                        </div>
+                        <button class="btn-delete" onclick="showDeleteModal('${doc.id}')">
+                            Delete
+                        </button>
                     `;
                     mindmapsContainer.appendChild(mindmapElement);
                 });
@@ -114,21 +318,37 @@
             }
         }
 
-        // Function to save mindmap
+        // Function to save mindmap to Firebase
         async function saveMindmap(data) {
             try {
                 const docRef = await addDoc(collection(db, "mindmaps"), data);
-                alert(`Mindmap saved successfully with ID: ${docRef.id}`);
+                alert(`Mindmap saved successfully!`);
                 loadSavedMindmaps();
+                return docRef;
             } catch (error) {
                 console.error("Error saving to Firebase: ", error);
                 alert("Error saving mindmap: " + error.message);
+                throw error;
+            }
+        }
+
+         // Function to delete mindmap
+         async function deleteMindmap(docId) {
+            try {
+                await deleteDoc(doc(db, "mindmaps", docId));
+                await loadSavedMindmaps();
+                alert("Mindmap deleted successfully!");
+            } catch (error) {
+                console.error("Error deleting mindmap: ", error);
+                alert("Error deleting mindmap: " + error.message);
             }
         }
 
         // Make functions available globally
         window.loadSavedMindmaps = loadSavedMindmaps;
         window.saveMindmap = saveMindmap;
+        window.deleteMindmap = deleteMindmap;
+        window.db = db;
 
         // Load saved mindmaps on page load
         loadSavedMindmaps();
@@ -136,102 +356,136 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script>
-        let branchCount = 0;
-        let subBranchCount = 0;
-
+        // Add branch function
         function addBranch() {
             const branchContainer = document.createElement('div');
             branchContainer.className = 'branch-container';
             branchContainer.innerHTML = `
-                <div class="mb-3">
-                    <label class="form-label">Branch Title:</label>
-                    <input type="text" class="form-control branch-title" required>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Branch Title</label>
+                        <input type="text" class="form-control branch-title" 
+                               placeholder="Enter branch title" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Branch ID</label>
+                        <input type="text" class="form-control branch-id" 
+                               placeholder="Enter unique identifier" required>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Branch ID:</label>
-                    <input type="text" class="form-control branch-id" required>
-                </div>
-                <div class="sub-branches-container">
+                <div class="sub-branches-container mb-3">
                     <!-- Sub-branches will be added here -->
                 </div>
-                <button type="button" class="btn btn-info" onclick="addSubBranch(this)">Add Sub-Branch</button>
-                <button type="button" class="btn btn-danger" onclick="removeBranch(this)">Remove Branch</button>
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-outline-primary" onclick="addSubBranch(this)">
+                        Add Sub-Branch
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="removeBranch(this)">
+                        Remove Branch
+                    </button>
+                </div>
             `;
             document.getElementById('branchesContainer').appendChild(branchContainer);
         }
 
+        // Add sub-branch function
         function addSubBranch(button) {
             const subBranchContainer = document.createElement('div');
             subBranchContainer.className = 'sub-branch';
             subBranchContainer.innerHTML = `
-                <div class="mb-3">
-                    <label class="form-label">Sub-Branch Title:</label>
-                    <input type="text" class="form-control sub-branch-title" required>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Sub-Branch Title</label>
+                        <input type="text" class="form-control sub-branch-title" 
+                               placeholder="Enter sub-branch title" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Modal Title</label>
+                        <input type="text" class="form-control modal-title" 
+                               placeholder="Enter modal title" required>
+                    </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Modal Title:</label>
-                    <input type="text" class="form-control modal-title" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Modal Content (Markdown):</label>
-                    <textarea class="form-control modal-content" rows="3" required></textarea>
+                    <label class="form-label">Modal Content (Markdown)</label>
+                    <textarea class="form-control modal-content" rows="4" 
+                              placeholder="Enter content in markdown format" required></textarea>
                 </div>
                 <div class="details-container">
-                    <label class="form-label">Details:</label>
+                    <label class="form-label">Details</label>
                     <div class="details-list"></div>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="addDetail(this)">Add Detail</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-2" 
+                            onclick="addDetail(this)">Add Detail</button>
                 </div>
-                <button type="button" class="btn btn-warning mt-2" onclick="removeSubBranch(this)">Remove Sub-Branch</button>
+                <button type="button" class="btn btn-outline-danger mt-3" 
+                        onclick="removeSubBranch(this)">Remove Sub-Branch</button>
             `;
-            button.parentElement.querySelector('.sub-branches-container').appendChild(subBranchContainer);
+            button.parentElement.parentElement.querySelector('.sub-branches-container').appendChild(subBranchContainer);
         }
 
+        // Add detail function
         function addDetail(button) {
             const detailInput = document.createElement('div');
-            detailInput.className = 'details-input input-group mb-2';
+            detailInput.className = 'details-input input-group';
             detailInput.innerHTML = `
-                <input type="text" class="form-control detail-item" required>
-                <button type="button" class="btn btn-outline-danger" onclick="removeDetail(this)">Remove</button>
+                <input type="text" class="form-control detail-item" 
+                       placeholder="Enter detail item">
+                <button type="button" class="btn btn-outline-danger" 
+                        onclick="removeDetail(this)">Remove</button>
             `;
             button.parentElement.querySelector('.details-list').appendChild(detailInput);
         }
 
+        // Remove functions
         function removeBranch(button) {
-            button.parentElement.remove();
+            button.closest('.branch-container').remove();
+            updateJsonOutput();
         }
 
         function removeSubBranch(button) {
-            button.parentElement.remove();
+            button.closest('.sub-branch').remove();
+            updateJsonOutput();
         }
 
         function removeDetail(button) {
-            button.parentElement.remove();
+            button.closest('.details-input').remove();
+            updateJsonOutput();
         }
 
-        async function loadSavedMindmaps() {
-            try {
-                const mindmapsQuery = query(collection(window.db, "mindmaps"), orderBy("createdAt", "desc"));
-                const querySnapshot = await getDocs(mindmapsQuery);
-                const mindmapsContainer = document.getElementById('savedMindmaps');
-                mindmapsContainer.innerHTML = '';
+        // Function to update JSON output
+        function updateJsonOutput() {
+            const data = {
+                centerTopic: document.getElementById('centerTopic').value,
+                branches: [],
+                createdAt: new Date().toISOString()
+            };
 
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    const mindmapElement = document.createElement('div');
-                    mindmapElement.className = 'list-group-item';
-                    mindmapElement.innerHTML = `
-                        <h5 class="mb-1">${data.centerTopic}</h5>
-                        <small class="text-muted">Created: ${new Date(data.createdAt).toLocaleString()}</small>
-                        <p class="mb-1">Branches: ${data.branches.length}</p>
-                    `;
-                    mindmapsContainer.appendChild(mindmapElement);
+            document.querySelectorAll('.branch-container').forEach(branchElem => {
+                const branch = {
+                    title: branchElem.querySelector('.branch-title').value,
+                    id: branchElem.querySelector('.branch-id').value,
+                    subBranches: []
+                };
+
+                branchElem.querySelectorAll('.sub-branch').forEach(subBranchElem => {
+                    const subBranch = {
+                        title: subBranchElem.querySelector('.sub-branch-title').value,
+                        modalTitle: subBranchElem.querySelector('.modal-title').value,
+                        modalContent: {
+                            markdown: subBranchElem.querySelector('.modal-content').value
+                        },
+                        details: Array.from(subBranchElem.querySelectorAll('.detail-item'))
+                            .map(detail => detail.value)
+                    };
+                    branch.subBranches.push(subBranch);
                 });
-            } catch (error) {
-                console.error("Error loading mindmaps: ", error);
-                alert("Error loading saved mindmaps: " + error.message);
-            }
+
+                data.branches.push(branch);
+            });
+
+            document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
         }
 
+        // Form submission handler
         document.getElementById('mindmapForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const data = {
@@ -263,31 +517,100 @@
                 data.branches.push(branch);
             });
 
-            document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
-
-            // Save to Firebase using the global function
-            await window.saveMindmap(data);
+            try {
+                await window.saveMindmap(data);
+                document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error saving mindmap:', error);
+            }
         });
 
+        // Add input event listener for auto-update
+        document.getElementById('mindmapForm').addEventListener('input', function() {
+            updateJsonOutput();
+        });
+
+        // Copy to clipboard function
         function copyToClipboard() {
             const jsonText = document.getElementById('jsonOutput').textContent;
             navigator.clipboard.writeText(jsonText)
-                .then(() => alert('JSON copied to clipboard!'))
+                .then(() => {
+                    const btn = document.querySelector('.btn-secondary');
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => btn.textContent = 'Copy JSON', 2000);
+                })
                 .catch(err => console.error('Failed to copy:', err));
         }
 
+        // Download JSON function
         function downloadJSON() {
             const jsonText = document.getElementById('jsonOutput').textContent;
+            if (!jsonText.trim()) {
+                alert('No data to download. Please create a mindmap first.');
+                return;
+            }
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `mindmap-${timestamp}.json`;
+            
             const blob = new Blob([jsonText], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'mindmap-content.json';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+
+            const btn = document.querySelector('.btn-primary[onclick="downloadJSON()"]');
+            const originalText = btn.textContent;
+            btn.textContent = 'Downloaded!';
+            setTimeout(() => btn.textContent = originalText, 2000);
         }
+
+        function showDeleteModal(docId) {
+            mindmapToDelete = docId;
+            document.getElementById('deleteConfirmationModal').style.display = 'block';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteConfirmationModal').style.display = 'none';
+            mindmapToDelete = null;
+        }
+
+        async function confirmDelete() {
+            if (mindmapToDelete) {
+                await window.deleteMindmap(mindmapToDelete);
+                closeDeleteModal();
+            }
+        }
+
+        // Add event listener to close modal when clicking outside
+        document.getElementById('deleteConfirmationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Make functions globally available
+        window.showDeleteModal = showDeleteModal;
+        window.closeDeleteModal = closeDeleteModal;
+        window.confirmDelete = confirmDelete;
+        window.addBranch = addBranch;
+        window.addSubBranch = addSubBranch;
+        window.addDetail = addDetail;
+        window.removeBranch = removeBranch;
+        window.removeSubBranch = removeSubBranch;
+        window.removeDetail = removeDetail;
+        window.copyToClipboard = copyToClipboard;
+        window.downloadJSON = downloadJSON;
+
+        // Initialize with one empty branch
+        window.addEventListener('load', function() {
+            addBranch();
+            loadSavedMindmaps();
+        });
     </script>
 </body>
 </html>
