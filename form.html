@@ -188,68 +188,141 @@
             justify-content: flex-end;
             margin-top: 1.5rem;
         }
+
+        .password-modal {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+
+        .password-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .content-hidden {
+            display: none;
+        }
+
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="card p-4">
-                    <h1 class="h3 mb-4">Mindmap Content Creator</h1>
-                    
-                    <form id="mindmapForm">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Center Topic</label>
-                            <input type="text" class="form-control form-control-lg" id="centerTopic" 
-                                   placeholder="Enter the main topic" required>
-                        </div>
-
-                        <div id="branchesContainer">
-                            <!-- Branches will be added here -->
-                        </div>
-
-                        <div class="action-buttons">
-                            <button type="button" class="btn btn-primary" onclick="addBranch()">
-                                Add New Branch
-                            </button>
-                        </div>
-                    </form>
+    <div id="passwordModal" class="password-modal">
+        <div class="password-modal-content">
+            <h4 class="mb-4">Enter Password</h4>
+            <form id="passwordForm" class="password-form">
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" required>
+                    <div id="errorMessage" class="error-message"></div>
                 </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="card p-4">
-                    <h3 class="h5 mb-3">Generated JSON</h3>
-                    <pre id="jsonOutput" class="mb-3"></pre>
-                    <div class="action-buttons">
-                        <button class="btn btn-secondary" onclick="copyToClipboard()">Copy JSON</button>
-                        <button class="btn btn-primary" onclick="downloadJSON()">Download JSON</button>
+                <button type="submit" class="btn btn-primary" id="submitPassword">
+                    Submit
+                    <span id="loadingSpinner" class="loading-spinner" style="display: none;"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <div id="mainContent" class="content-hidden">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card p-4">
+                        <h1 class="h3 mb-4">Mindmap Content Creator</h1>
+                        
+                        <form id="mindmapForm">
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Center Topic</label>
+                                <input type="text" class="form-control form-control-lg" id="centerTopic" 
+                                       placeholder="Enter the main topic" required>
+                            </div>
+    
+                            <div id="branchesContainer">
+                                <!-- Branches will be added here -->
+                            </div>
+    
+                            <div class="action-buttons">
+                                <button type="button" class="btn btn-primary" onclick="addBranch()">
+                                    Add New Branch
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-
-                <div class="card p-4 mt-4">
-                    <h3 class="h5 mb-3">Saved Mindmaps</h3>
-                    <div id="savedMindmaps">
-                        <!-- Saved mindmaps will be listed here -->
+    
+                <div class="col-lg-4">
+                    <div class="card p-4">
+                        <h3 class="h5 mb-3">Generated JSON</h3>
+                        <pre id="jsonOutput" class="mb-3"></pre>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="copyToClipboard()">Copy JSON</button>
+                            <button class="btn btn-primary" onclick="downloadJSON()">Download JSON</button>
+                        </div>
+                    </div>
+    
+                    <div class="card p-4 mt-4">
+                        <h3 class="h5 mb-3">Saved Mindmaps</h3>
+                        <div id="savedMindmaps">
+                            <!-- Saved mindmaps will be listed here -->
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="floating-save">
-        <button type="submit" form="mindmapForm" class="btn btn-primary btn-lg">
-            Save Mindmap
-        </button>
-    </div>
-
-    <div id="deleteConfirmationModal" class="delete-confirmation-modal">
-        <div class="modal-content">
-            <h4 class="mb-3">Delete Mindmap</h4>
-            <p>Are you sure you want to delete this mindmap? This action cannot be undone.</p>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    
+        <div class="floating-save">
+            <button type="submit" form="mindmapForm" class="btn btn-primary btn-lg">
+                Save Mindmap
+            </button>
+        </div>
+    
+        <div id="deleteConfirmationModal" class="delete-confirmation-modal">
+            <div class="modal-content">
+                <h4 class="mb-3">Delete Mindmap</h4>
+                <p>Are you sure you want to delete this mindmap? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+                </div>
             </div>
         </div>
     </div>
@@ -356,6 +429,63 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const originalContent = document.querySelector('.container');
+            const mainContent = document.getElementById('mainContent');
+            if (originalContent && mainContent) {
+                mainContent.appendChild(originalContent);
+            }
+        });
+
+        // Password handling
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const passwordForm = document.getElementById('passwordForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const mainContent = document.getElementById('mainContent');
+        const passwordModal = document.getElementById('passwordModal');
+
+        passwordForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            loadingSpinner.style.display = 'inline-block';
+            errorMessage.textContent = '';
+
+            try {
+                const hashedPassword = await sha256(password);
+                // The hash below is for password 'admin'
+                const correctHash = await sha256('admin');
+
+                if (hashedPassword === correctHash) {
+                    passwordModal.style.display = 'none';
+                    mainContent.classList.remove('content-hidden');
+                    sessionStorage.setItem('authenticated', 'true');
+                } else {
+                    errorMessage.textContent = 'Incorrect password';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                console.error('Error:', error);
+            } finally {
+                loadingSpinner.style.display = 'none';
+            }
+        });
+
+        // Check for existing authentication on page load
+        window.addEventListener('load', function() {
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                passwordModal.style.display = 'none';
+                mainContent.classList.remove('content-hidden');
+            }
+        });
         // Add branch function
         function addBranch() {
             const branchContainer = document.createElement('div');
