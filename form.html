@@ -359,6 +359,46 @@
             </div>
         </div>
     </div>
+    <script>
+        function escapeAndEncode(inputString, escapeType = "html") {
+            // Define the encoding map for HTML special characters
+            const htmlEncoding = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&apos;',
+                '\\': '&#92;',
+                '\n': '&#10;',
+                '\r': '&#13;',
+                '\t': '&#9;',
+                ' ': '&nbsp;',
+                '©': '&copy;',
+                '®': '&reg;',
+                '€': '&euro;',
+                '™': '&trade;',
+            };
+
+            // Define escape characters based on the type (LaTeX, HTML)
+            let escapeDict = {};
+            if (escapeType === "latex") {
+                const latexSpecialChars = ['\\', '{', '}', '[', ']', '$', '#', '%', '&', '_', '^', '~', '<', '>', '!', '`', ':', ';', '"', "'", '+', '=', '?', ',', '.', '/', '|'];
+                // Escape LaTeX special characters with a backslash
+                latexSpecialChars.forEach(char => escapeDict[char] = '\\' + char);
+            } else if (escapeType === "html") {
+                // Use the HTML encoding dictionary for HTML characters
+                escapeDict = htmlEncoding;
+            } else {
+                throw new Error("Unknown escape type: " + escapeType);
+            }
+
+            // Function to escape and encode special characters
+            return inputString.replace(/[\\"'&<>\n\r\t ]/g, (match) => {
+                return escapeDict[match] || match;
+            });
+        }
+
+    </script>
 
     <script type="module">
         // Import Firebase modules
@@ -670,7 +710,7 @@
                         title: subBranchElem.querySelector('.sub-branch-title').value,
                         modalTitle: subBranchElem.querySelector('.modal-title').value,
                         modalContent: {
-                            markdown: subBranchElem.querySelector('.modal-content').value
+                            markdown: escapeAndEncode(subBranchElem.querySelector('.modal-content').value, 'latex')
                         },
                         details: Array.from(subBranchElem.querySelectorAll('.detail-item'))
                             .map(detail => detail.value)

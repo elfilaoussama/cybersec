@@ -313,12 +313,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script type="text/javascript" async
-        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   </script>
   <script>
     function decodeMarkdown(text) {
         // Replace '\\n' escape sequences with actual newlines
-        let decodedText = text.replace(/\\n/g, '\n');
+        let decodedText = text
         
         // Replace LaTeX math expressions with HTML-safe LaTeX content for MathJax rendering
         decodedText = decodedText.replace(/\$\$(.*?)\$\$/g, (match, p1) => {
@@ -426,7 +426,7 @@
               <div id="${branch.id}">
                 ${branch.subBranches.map(subBranch => `
                   <div class="sub-branch" 
-                       onclick="handleSubBranchClick(this)"
+                       onclick="handleSubBranchClick(this); renderMath();"
                        data-modal-content='${JSON.stringify(subBranch.modalContent)}'
                        data-modal-title="${subBranch.modalTitle}">
                     ${subBranch.title}
@@ -467,14 +467,15 @@
           // Parse markdown to HTML
           const decodedMarkdown  = decodeMarkdown(modalContentData.markdown)
           const htmlContent = marked.parse(decodedMarkdown);
-          console.log(htmlContent)
+
           // Add Bootstrap classes
           const styledContent = htmlContent
             .replace(/<ul>/g, '<ul class="list-unstyled">')
             .replace(/<h1>/g, '<h1 class="mb-4">')
             .replace(/<h2>/g, '<h2 class="mt-4 mb-3">')
             .replace(/<p>/g, '<p class="lead">')
-            .replace(/<img/g, '<img class="img-fluid"');
+            .replace(/<img/g, '<img class="img-fluid"')
+            .replace(/\\n/g, '<br>');
 
           loadingSpinner.style.display = 'none';
           modalContent.innerHTML = styledContent;
@@ -526,16 +527,15 @@
     });
   </script>
   <script type="text/javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        // Function to render LaTeX expressions in the targeted class
-        function renderMath() {
-            // Trigger MathJax to process elements with the class 'latex-math'
-            MathJax.Hub.Queue(["Typeset", MathJax.Hub, document.querySelectorAll('.latex-math')]);
-        }
-
-        // Call renderMath to process the page content
-        renderMath();
-    });
-</script>
+    function renderMath() {
+      console.log("I'm Here");
+      // Trigger MathJax to process elements with the class 'latex-math'
+      MathJax.typesetPromise(document.querySelectorAll('.latex-math'))
+        .then(() => {
+          console.log("Math rendering complete!");
+        })
+        .catch((err) => console.error("Error during MathJax rendering:", err));
+    }
+  </script>
 </body>
 </html>
