@@ -3,101 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Mindmap</title>
+    <title>Databases Viewer</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .mindmap-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background: #f8f9fa;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .center-circle {
-            position: absolute;
-            width: clamp(80px, 15vw, 120px);
-            height: clamp(80px, 15vw, 120px);
-            background: #FF6B6B;
+        .bubble {
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
             color: white;
             text-align: center;
-            font-size: clamp(14px, 2vw, 18px);
-            z-index: 10;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .petal {
-            position: absolute;
-            width: clamp(100px, 20vw, 160px);
-            height: clamp(100px, 20vw, 160px);
-            background: #579893;
-            border-radius: 50% 50% 0 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transform-origin: center;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            word-break: break-word;
+            padding: 15px;
             text-decoration: none;
         }
 
-        .petal:hover {
-            background: #45B7AF;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        .bubble:hover {
             transform: scale(1.1);
-            z-index: 5;
-        }
-
-        .petal-content {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            transform: rotate(-45deg);
-        }
-
-        .petal-text {
-            font-weight: bold;
-            text-align: center;
-            word-wrap: break-word;
-            max-width: 80%;
-            font-size: clamp(12px, 1.8vw, 14px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             color: white;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+
+        .bubbles-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .list-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .list-item {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .list-item:hover {
+            transform: translateX(10px);
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            #viewToggle {
+                display: none;
+            }
+            .bubbles-container {
+                display: none;
+            }
+            .list-container {
+                display: block !important;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="mindmap-container">
-        <div class="center-circle">
-            <span>Cybersecurity</span>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Modules</h1>
+            <button id="viewToggle" class="btn btn-primary">Switch to List View</button>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            Loading databases...
+        </div>
+
+        <div id="bubblesView" class="bubbles-container fade-in" style="display: none;">
+            <!-- Bubbles will be added here -->
+        </div>
+
+        <div id="listView" class="list-container fade-in" style="display: none;">
+            <!-- List items will be added here -->
         </div>
     </div>
 
+    <!-- Firebase SDK -->
     <script type="module">
-        // Import the functions you need from the SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getFirestore, getDocs, setDoc, collection, doc} from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCyGmu8v4Pgu9O6doloSuHdP_omHuDkJG0",
             authDomain: "courses-summary.firebaseapp.com",
             projectId: "courses-summary",
-            storageBucket: "courses-summary.appspot.com",
+            storageBucket: "courses-summary.firebasestorage.app",
             messagingSenderId: "467937369630",
             appId: "1:467937369630:web:788a74fc5bb09b7c10980f",
             measurementId: "G-XRXYVFD78P"
@@ -106,76 +129,125 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const analytics = getAnalytics(app);
 
-        const topics = [];
 
-        async function fetchTopics() {
-            const querySnapshot = await getDocs(collection(db, "mindmaps"));
-            querySnapshot.forEach(doc => {
-                console.log()
-                topics.push({ id: doc.id, title: doc._document.data.value.mapValue.fields.centerTopic.stringValue });
-            });
-            updateMindmap();
+
+        // Color palette for modules
+        const colors = [
+            '#4361ee', '#3a0ca3', '#7209b7', 
+            '#f72585', '#4cc9f0', '#4895ef',
+            '#560bad', '#480ca8', '#3f37c9',
+            '#4361ee', '#4cc9f0', '#72efdd'
+        ];
+
+        const bubblesView = document.getElementById('bubblesView');
+        const listView = document.getElementById('listView');
+        const viewToggle = document.getElementById('viewToggle');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        let isListView = false;
+
+       
+
+        async function fetchDatabases() {
+            try {
+                // Get all root-level collection references
+                const rootCollections = await getDocs(collection(db, 'modules'));
+
+                const databases = [];
+                
+                rootCollections.forEach((doc) => {
+  
+                    databases.push({
+                        id: doc.data().name,
+                        title: doc.data().name || doc.id, // Use name field if exists, otherwise use ID
+                        color: colors[databases.length % colors.length]
+                    });
+                });
+                
+                return databases;
+            } catch (error) {
+                console.error("Error fetching databases:", error);
+                return [];
+            }
         }
 
-        function calculateDimensions() {
-            const centerCircle = document.querySelector('.center-circle');
-            const centerCircleRect = centerCircle.getBoundingClientRect();
-            const centerCircleRadius = centerCircleRect.width / 2;
-
-            return {
-                centerX: centerCircleRect.left + centerCircleRadius,
-                centerY: centerCircleRect.top + centerCircleRadius,
-                centerCircleRadius: centerCircleRadius,
-                petalSize: centerCircleRect.width * 1.3
-            };
-        }
-
-        function updateMindmap() {
-            const container = document.querySelector('.mindmap-container');
-            document.querySelectorAll('.petal').forEach(petal => petal.remove());
-
-            const { centerX, centerY, centerCircleRadius, petalSize } = calculateDimensions();
-            const radius = centerCircleRadius * 2; // Distance of petals from the center
-            const angleStep = (2 * Math.PI) / topics.length;
-
-            topics.forEach((topic, index) => {
-                const angle = index * angleStep;
-                const x = centerX + radius * Math.cos(angle);
-                const y = centerY + radius * Math.sin(angle);
-
-                const petal = document.createElement('a'); // Anchor for linking
-                petal.className = 'petal';
-                petal.href = `page.html?id=${topic.id}`; // Add link to the page with the topic ID
-                petal.style.width = `${petalSize}px`;
-                petal.style.height = `${petalSize}px`;
-
-                petal.style.left = `${x - petalSize / 2}px`;
-                petal.style.top = `${y - petalSize / 2}px`;
-
-                const rotation = (angle * 180) / Math.PI + 90;
-                petal.style.transform = `rotate(${rotation}deg)`;
-
-                const content = document.createElement('div');
-                content.className = 'petal-content';
-
-                const text = document.createElement('div');
-                text.className = 'petal-text';
-                text.textContent = topic.title;
-
-                content.appendChild(text);
-                petal.appendChild(content);
-                container.appendChild(petal);
+        function createBubbles(databases) {
+            bubblesView.innerHTML = '';
+            databases.forEach(database => {
+                const bubble = document.createElement('a');
+                bubble.href = `main.html?id=${database.id}`; // Update with your actual URL pattern
+                bubble.className = 'bubble fade-in';
+                bubble.style.backgroundColor = database.color;
+                bubble.innerHTML = `<span>${database.title}</span>`;
+                bubblesView.appendChild(bubble);
             });
         }
 
-        // Fetch topics and initialize mindmap
-        fetchTopics();
+        function createList(databases) {
+            listView.innerHTML = '';
+            databases.forEach(database => {
+                const listItem = document.createElement('a');
+                listItem.href = `main.html?id=${database.id}`; // Update with your actual URL pattern
+                listItem.className = 'list-item fade-in';
+                listItem.style.backgroundColor = database.color;
+                listItem.innerHTML = database.title;
+                listView.appendChild(listItem);
+            });
+        }
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            updateMindmap();
-        });
+        function toggleView() {
+            isListView = !isListView;
+            if (isListView) {
+                bubblesView.style.display = 'none';
+                listView.style.display = 'block';
+                viewToggle.textContent = 'Switch to Bubble View';
+            } else {
+                bubblesView.style.display = 'flex';
+                listView.style.display = 'none';
+                viewToggle.textContent = 'Switch to List View';
+            }
+        }
+
+        function checkScreenSize() {
+            if (window.innerWidth < 768) {
+                bubblesView.style.display = 'none';
+                listView.style.display = 'block';
+                isListView = true;
+            } else {
+                if (!isListView) {
+                    bubblesView.style.display = 'flex';
+                    listView.style.display = 'none';
+                }
+            }
+        }
+
+        // Initialize
+        async function initialize() {
+            try {
+                const databases = await fetchDatabases();
+                loadingIndicator.style.display = 'none';
+                
+                if (databases.length === 0) {
+                    loadingIndicator.textContent = 'No databases found. Please make sure you have created some databases in Firestore.';
+                    loadingIndicator.style.display = 'block';
+                    return;
+                }
+
+                createBubbles(databases);
+                createList(databases);
+                
+                bubblesView.style.display = 'flex';
+                viewToggle.addEventListener('click', toggleView);
+                window.addEventListener('resize', checkScreenSize);
+                checkScreenSize();
+            } catch (error) {
+                console.error("Initialization error:", error);
+                loadingIndicator.textContent = 'Error loading databases. Please refresh the page.';
+            }
+        }
+
+        initialize();
     </script>
 </body>
 </html>

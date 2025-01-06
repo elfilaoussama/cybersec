@@ -308,6 +308,19 @@
                                 <input type="text" class="form-control form-control-lg" id="centerTopic" 
                                        placeholder="Enter the main topic" required>
                             </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Modules</label>
+                                <div class="d-flex gap-2">
+                                    <select class="form-select" id="collectionSelect">
+                                        <option value="">Select Module</option>
+                                        <option value="new">Create New Module</option>
+                                    </select>
+                                    <div id="newCollectionInput" class="input-group" style="display: none;">
+                                        <input type="text" class="form-control" id="newCollectionName" placeholder="Enter collection name">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="cancelNewCollection()">Cancel</button>
+                                    </div>
+                                </div>
+                            </div>
     
                             <div id="branchesContainer">
                                 <!-- Branches will be added here -->
@@ -332,12 +345,11 @@
                         </div>
                     </div>
     
-                    <div class="card p-4 mt-4">
+                    <!-- <div class="card p-4 mt-4">
                         <h3 class="h5 mb-3">Saved Mindmaps</h3>
                         <div id="savedMindmaps">
-                            <!-- Saved mindmaps will be listed here -->
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
@@ -463,14 +475,78 @@
                 alert("Error loading saved mindmaps: " + error.message);
             }
         }
+
+        // Fetch and populate collections
+        window.onload = async function loadCollections() {
+            try {
+                const modulesSnapshot = await getDocs(collection(db, 'modules'));
+                const select = document.getElementById('collectionSelect');
+                
+                // Keep first two options, remove others
+                while (select.options.length > 2) {
+                    select.remove(2);
+                }
+                
+                modulesSnapshot.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.data().name;
+                    console.log(doc.data().name)
+                    option.textContent = doc.data().name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading collections:", error);
+                alert("Error loading collections: " + error.message);
+            }
+        }
+
+        document.getElementById('collectionSelect').addEventListener('change', function() {
+            const newCollectionInput = document.getElementById('newCollectionInput');
+            const select = document.getElementById('collectionSelect');
+            
+            if (this.value === 'new') {
+                select.style.display = 'none';
+                newCollectionInput.style.display = 'flex';
+            } else {
+                select.style.display = 'block';
+                newCollectionInput.style.display = 'none';
+            }
+        });
+        
+       function cancelNewCollection() {
+            document.getElementById('newCollectionName').value = '';
+            document.getElementById('newCollectionInput').style.display = 'none';
+            document.getElementById('collectionSelect').style.display = 'block';
+            document.getElementById('collectionSelect').value = '';
+        }
         
         // Function to save mindmap to Firebase
         async function saveMindmap(data) {
             try {
-                const docRef = await addDoc(collection(db, "mindmaps"), data);
-                alert(`Mindmap saved successfully!`);
-                loadSavedMindmaps();
-                return docRef;
+                const collectionName = data.collection;
+                delete data.collection;
+                const collRef = collection(db, collectionName);
+                const querySnapshot = await getDocs(collRef);
+
+                if (querySnapshot.empty) {
+                    console.log(`Collection '${collectionName}' does not exist or is empty.`);
+
+                    const newDoc = await addDoc(collRef, data);
+                    console.log("Document added with ID: ", newDoc.id);
+
+                    await addDoc(collection(db, 'modules'), {name : collectionName})
+                    alert(`Mindmap saved successfully!`);
+                    return newDoc;
+
+                } else {
+                    console.log(`Collection '${collectionName}' exists and contains documents.`);
+                    const docRef = await addDoc(collection(db, collectionName), data);
+                    alert(`Mindmap saved successfully!`);
+                    // loadSavedMindmaps();
+                    return docRef;
+                }
+
+                
             } catch (error) {
                 console.error("Error saving to Firebase: ", error);
                 alert("Error saving mindmap: " + error.message);
@@ -482,7 +558,7 @@
          async function deleteMindmap(docId) {
             try {
                 await deleteDoc(doc(db, "mindmaps", docId));
-                await loadSavedMindmaps();
+                // await loadSavedMindmaps();
                 alert("Mindmap deleted successfully!");
             } catch (error) {
                 console.error("Error deleting mindmap: ", error);
@@ -491,13 +567,14 @@
         }
 
         // Make functions available globally
+        window.cancelNewCollection = cancelNewCollection;
         window.loadSavedMindmaps = loadSavedMindmaps;
         window.saveMindmap = saveMindmap;
         window.deleteMindmap = deleteMindmap;
         window.db = db;
 
         // Load saved mindmaps on page load
-        loadSavedMindmaps();
+        // loadSavedMindmaps();
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
@@ -694,6 +771,9 @@
             e.preventDefault();
             const data = {
                 centerTopic: document.getElementById('centerTopic').value,
+                collection: document.getElementById('collectionSelect').value === 'new' 
+                    ? document.getElementById('newCollectionName').value 
+                    : document.getElementById('collectionSelect').value,
                 branches: [],
                 createdAt: new Date().toISOString()
             };
@@ -813,7 +893,7 @@
         // Initialize with one empty branch
         window.addEventListener('load', function() {
             addBranch();
-            loadSavedMindmaps();
+            //loadSavedMindmaps();
         });
     </script>
     <script>

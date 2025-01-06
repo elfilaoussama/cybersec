@@ -273,8 +273,8 @@
   </style>
 </head>
 <body>
-  <a href="./index.html" class="home-button">
-    ← Back to Home
+  <a href="" class="home-button" onclick="updateLink()">
+    ← Back
   </a>
   <div class="container-fluid">
     <div class="mindmap-container">
@@ -389,12 +389,23 @@
         try {
           // Get the topic ID from URL
           const topicId = getUrlParameter('id');
-          if (!topicId) {
-            throw new Error('No topic ID provided in URL');
+          const module = getUrlParameter('module')
+          if (!topicId || !module) {
+            throw new Error('No topic ID or module provided in URL');
           }
+          
+          window.updateLink = () => {
+            // Select all elements with the class 'home-button' (assuming it's a class)
+            const buttons = document.querySelectorAll('.home-button');
 
+            // Loop through the NodeList and update the href of each element
+            buttons.forEach(button => {
+              button.href = `./main.html?id=${module}`;
+            });
+          };          
+          
           // Get the specific document from Firestore
-          const docRef = doc(db, 'mindmaps', topicId);
+          const docRef = doc(db, module, topicId);
           const docSnap = await getDoc(docRef);
 
           if (!docSnap.exists()) {
