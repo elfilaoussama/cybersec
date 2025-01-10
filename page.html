@@ -317,18 +317,20 @@
   </script>
   <script>
     function decodeMarkdown(text) {
-        // Replace '\\n' escape sequences with actual newlines
         let decodedText = text
-        
-        // Replace LaTeX math expressions with HTML-safe LaTeX content for MathJax rendering
-        decodedText = decodedText.replace(/\$\$(.*?)\$\$/g, (match, p1) => {
-            // Ensure that MathJax can recognize the LaTeX math
-            return `<span class="latex-math">$$${p1}$$</span>`;
+
+        // Replace block LaTeX math expressions (e.g., $$...$$) with HTML-safe LaTeX for MathJax rendering
+        decodedText = decodedText.replace(/\$\$(.*?)\$\$/gs, (match, p1) => {
+            return `<div class="latex-math">&#x5c;[${p1}&#x5c;]</div>`;
+        });
+
+        // Replace inline LaTeX math expressions (e.g., $...$) with HTML-safe LaTeX for MathJax rendering
+        decodedText = decodedText.replace(/\$(.*?)\$/g, (match, p1) => {
+            return `<span class="latex-math">&#x5c;(${p1}&#x5c;)</span>`;
         });
 
         return decodedText;
     }
-
   </script>
   <!-- Firebase Scripts -->
   <script type="module">
@@ -477,8 +479,9 @@
 
           // Parse markdown to HTML
           const decodedMarkdown  = decodeMarkdown(modalContentData.markdown)
+          console.log(decodedMarkdown)
           const htmlContent = marked.parse(decodedMarkdown);
-
+          console.log(htmlContent)
           // Add Bootstrap classes
           const styledContent = htmlContent
             .replace(/<ul>/g, '<ul class="list-unstyled">')
@@ -539,7 +542,6 @@
   </script>
   <script type="text/javascript">
     function renderMath() {
-      console.log("I'm Here");
       // Trigger MathJax to process elements with the class 'latex-math'
       MathJax.typesetPromise(document.querySelectorAll('.latex-math'))
         .then(() => {

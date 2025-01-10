@@ -803,7 +803,15 @@
 
             try {
                 await window.saveMindmap(data);
-                document.getElementById('jsonOutput').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('jsonOutput').textContent = 
+                JSON.stringify(data, (key, value) => {
+                    // If the value is a string, replace single quotes with &apos;
+                    console.log(value)
+                    if (typeof value === 'string') {
+                        return value.replace(/'/g, "&apos;");   
+                    }
+                    return value; // Leave other types unchanged
+                }, 2);
             } catch (error) {
                 console.error('Error saving mindmap:', error);
             }
